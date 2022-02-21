@@ -1,0 +1,37 @@
+- name: "Installation Docker"
+  gather_facts: yes
+  become: yes
+  hosts: "prod"
+  roles:
+    - role: steissier.docker_role 
+
+- name: "lancement container staging"
+  vars:
+    imgNameWebApp: "img_webapp"
+    userName: "26021973"
+    imgTag: "latest"
+    exposePort: "8080"
+  hosts: "prod"
+  gather_facts: yes
+  become: yes
+  tasks:
+    - name: "lancement postgres"
+      docker_container:
+        name: "postgres"
+        image: "postgres:latest"
+        ports:
+          - "5432:5432"
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+
+    - name: "recup container"
+      docker_container:
+        name: "webapp"
+        image: "{{ userName }}/{{ imgNameWebApp }}:{{ imgTag }}"
+        ports:
+          - "8000:{{ exposePort }}"
+        links:
+          - postgres
+
